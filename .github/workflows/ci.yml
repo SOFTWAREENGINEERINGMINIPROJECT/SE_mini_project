@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      USE_SQLITE: "1"
+      SECRET_KEY: ci-secret-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: System packages for mysqlclient
+        run: sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev build-essential pkg-config
+
+      - name: Install dependencies
+        run: pip install -r sams/requirements.txt
+
+      - name: Django checks
+        working-directory: sams
+        run: python manage.py check
+
+      - name: Migrations (SQLite, no MySQL needed in CI)
+        working-directory: sams
+        run: python manage.py migrate
+
+      - name: Tests
+        working-directory: sams
+        run: python manage.py test
