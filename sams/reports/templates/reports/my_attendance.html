@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}My attendance - SAMS{% endblock %}
+
+{% block content %}
+<h1 class="h4 mb-3">My attendance</h1>
+
+{% if subjects %}
+<table class="table table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Subject</th>
+      <th class="text-end">Conducted</th>
+      <th class="text-end">Attended</th>
+      <th class="text-end">Attendance %</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in subjects %}
+    <tr>
+      <td>{{ s.code }} - {{ s.name }}</td>
+      <td class="text-end">{{ s.conducted }}</td>
+      <td class="text-end">{{ s.attended }}</td>
+      <td class="text-end">
+        <span class="badge {% if s.below %}text-bg-danger{% else %}text-bg-success{% endif %}">{{ s.percent }}%</span>
+        {% if s.below %}<small class="text-danger">below {{ threshold }}%</small>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="text-muted small">Attendance % = (classes attended + approved leave) / classes conducted x 100.</p>
+{% else %}
+<p class="text-muted">No attendance has been recorded for you yet.</p>
+{% endif %}
+{% endblock %}
