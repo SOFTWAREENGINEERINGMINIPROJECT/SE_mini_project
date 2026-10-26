@@ -4,5 +4,6 @@
 
 {% block content %}
 <h1 class="h4">Student dashboard</h1>
-<p class="text-muted">Your attendance percentage and leave requests will appear here (coming soon).</p>
+<p class="text-muted">View your subject-wise attendance.</p>
+<a class="btn btn-primary" href="{% url 'reports:my' %}">My attendance</a>
 {% endblock %}
