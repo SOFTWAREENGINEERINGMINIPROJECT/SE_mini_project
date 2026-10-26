@@ -1,6 +1,9 @@
 from django.db.models import Count, Q
 from django.shortcuts import render
 
+from .forms import ReportForm
+from .services import build_report
+
 from accounts.decorators import role_required
 from attendance.models import AttendanceRecord
 
@@ -37,3 +40,18 @@ def my_attendance(request):
         })
     return render(request, "reports/my_attendance.html",
                   {"subjects": subjects, "threshold": THRESHOLD})
+
+
+@role_required("faculty", "admin")
+def class_report(request):
+    """SEM-15 (REQ-13): attendance report for a class + subject between two dates."""
+    form = ReportForm(request.GET or None, user=request.user)
+    rows = teaching = start = end = None
+    if request.GET and form.is_valid():
+        teaching = form.cleaned_data["teaching"]
+        start, end = form.cleaned_data["start"], form.cleaned_data["end"]
+        rows = build_report(teaching, start, end)
+    return render(request, "reports/class_report.html", {
+        "form": form, "rows": rows, "teaching": teaching,
+        "start": start, "end": end, "threshold": THRESHOLD,
+    })
