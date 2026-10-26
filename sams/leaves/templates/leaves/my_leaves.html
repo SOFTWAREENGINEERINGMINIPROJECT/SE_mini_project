@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}My leave requests - SAMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4 m-0">My leave requests</h1>
+  <a href="{% url 'leaves:apply' %}" class="btn btn-primary btn-sm">Apply for leave</a>
+</div>
+{% if leaves %}
+<table class="table table-bordered">
+  <thead><tr><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Applied on</th></tr></thead>
+  <tbody>
+  {% for l in leaves %}
+    <tr>
+      <td>{{ l.from_date|date:"d M Y" }}</td>
+      <td>{{ l.to_date|date:"d M Y" }}</td>
+      <td>{{ l.reason }}</td>
+      <td>{{ l.get_status_display }}</td>
+      <td>{{ l.created_at|date:"d M Y" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="text-muted">No leave requests yet.</p>
+{% endif %}
+{% endblock %}

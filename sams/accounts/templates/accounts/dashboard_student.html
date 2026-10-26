@@ -4,6 +4,8 @@
 
 {% block content %}
 <h1 class="h4">Student dashboard</h1>
-<p class="text-muted">View your subject-wise attendance.</p>
+<p class="text-muted">View your subject-wise attendance and leave requests.</p>
 <a class="btn btn-primary" href="{% url 'reports:my' %}">My attendance</a>
+<a class="btn btn-outline-primary" href="{% url 'leaves:apply' %}">Apply for leave</a>
+<a class="btn btn-outline-secondary" href="{% url 'leaves:my' %}">My leave requests</a>
 {% endblock %}
