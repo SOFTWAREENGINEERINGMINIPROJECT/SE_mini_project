@@ -139,3 +139,69 @@ class ApproveLeaveTests(TestCase):
     def test_get_not_allowed(self):
         self.client.force_login(self.fac)
         self.assertEqual(self.client.get(reverse("leaves:decide", args=[self.leave.pk])).status_code, 405)
+
+
+class ShortageEmailTests(TestCase):
+    """SEM-20 / REQ-16 (TC-13)."""
+
+    def setUp(self):
+        from academics.models import ClassSection, Subject, Teaching
+
+        self.fac = User.objects.create_user(username="fac9", password="pw-123456", role="faculty")
+        self.stud = User.objects.create_user(username="stud9", password="pw-123456", role="student",
+                                             email="stud9@example.com", first_name="Ravi")
+        self.cls = ClassSection.objects.create(department="CSE", semester=5, section="A")
+        self.cls.students.add(self.stud)
+        self.sub = Subject.objects.create(code="UE24CS342A", name="Compilers", semester=5)
+        Teaching.objects.create(faculty=self.fac, subject=self.sub, class_section=self.cls)
+
+    def add(self, status, hour):
+        from attendance.models import AttendanceRecord
+        AttendanceRecord.objects.create(student=self.stud, subject=self.sub, class_section=self.cls,
+                                        date=date.today(), hour=hour, status=status, marked_by=self.fac)
+
+    def test_mail_sent_when_below_75(self):
+        from django.core import mail
+        from .utils import check_shortage
+        self.add("P", 1); self.add("A", 2)          # 50%
+        self.assertTrue(check_shortage(self.stud, self.sub))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["stud9@example.com"])
+        self.assertIn("50.0%", mail.outbox[0].body)
+
+    def test_no_mail_at_exactly_75(self):          # boundary, BR-4
+        from django.core import mail
+        from .utils import check_shortage
+        for h, st in enumerate("PPPA", start=1):
+            self.add(st, h)
+        self.assertFalse(check_shortage(self.stud, self.sub))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_not_resent_within_a_week(self):
+        from django.core import mail
+        from .utils import check_shortage
+        self.add("A", 1)
+        check_shortage(self.stud, self.sub)
+        self.add("A", 2)
+        self.assertFalse(check_shortage(self.stud, self.sub))
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_no_email_address_no_mail(self):
+        from django.core import mail
+        from .utils import check_shortage
+        self.stud.email = ""
+        self.stud.save()
+        self.add("A", 1)
+        self.assertFalse(check_shortage(self.stud, self.sub))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_marking_attendance_triggers_mail(self):  # end to end through SEM-11 + SEM-13 hook
+        from django.core import mail
+        from academics.models import Teaching
+        t = Teaching.objects.get()
+        self.client.force_login(self.fac)
+        self.client.post(reverse("attendance:mark"), {
+            "teaching": t.pk, "date": date.today(), "hour": 1, "absent": [str(self.stud.pk)],
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("UE24CS342A", mail.outbox[0].subject)
