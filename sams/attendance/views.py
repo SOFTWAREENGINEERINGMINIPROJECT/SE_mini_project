@@ -5,6 +5,8 @@ from django.shortcuts import redirect, render
 from accounts.decorators import role_required
 
 from .forms import SelectClassForm
+from leaves.models import LeaveRequest
+
 from .models import AttendanceRecord
 
 
@@ -31,6 +33,11 @@ def mark_attendance(request):
             students = None
         elif request.method == "POST":
             absent_ids = set(request.POST.getlist("absent"))
+            on_leave = set(
+                LeaveRequest.objects.filter(
+                    status="approved", from_date__lte=day, to_date__gte=day, student__in=students
+                ).values_list("student_id", flat=True)
+            )
             try:
                 with transaction.atomic():
                     AttendanceRecord.objects.bulk_create(
@@ -40,7 +47,7 @@ def mark_attendance(request):
                             class_section=teaching.class_section,
                             date=day,
                             hour=hour,
-                            status="A" if str(s.pk) in absent_ids else "P",
+                            status=("L" if s.pk in on_leave else "A") if str(s.pk) in absent_ids else "P",
                             marked_by=request.user,
                         )
                         for s in students
