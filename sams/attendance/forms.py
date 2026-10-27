@@ -13,12 +13,12 @@ class SelectClassForm(forms.Form):
     date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), initial=date.today)
     hour = forms.TypedChoiceField(choices=HOURS, coerce=int)
 
-    def __init__(self, *args, faculty=None, **kwargs):
+    def __init__(self, *args, faculty=None, all_classes=False, **kwargs):
         super().__init__(*args, **kwargs)
-        # a faculty member can only mark classes they are assigned to
-        self.fields["teaching"].queryset = Teaching.objects.filter(faculty=faculty).select_related(
-            "subject", "class_section"
-        )
+        # a faculty member can only mark classes they are assigned to (BR-2);
+        # all_classes is for admins editing old attendance (BR-3)
+        qs = Teaching.objects.all() if all_classes else Teaching.objects.filter(faculty=faculty)
+        self.fields["teaching"].queryset = qs.select_related("subject", "class_section", "faculty")
         for f in self.fields.values():
             f.widget.attrs.setdefault("class", "form-select" if isinstance(f, (forms.ModelChoiceField, forms.TypedChoiceField)) else "form-control")
 
