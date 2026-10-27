@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Upload students - SAMS{% endblock %}
+
+{% block content %}
+<h1 class="h4">Upload students from Excel</h1>
+<p class="text-muted">
+  An <code>.xlsx</code> file whose first row is:
+  {% for c in columns %}<code>{{ c }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.
+  Phone is optional. Each new student gets their SRN as username and first password, and is added to their class
+  (created if needed). Rows that fail validation are listed below; the valid rows are still saved.
+</p>
+<form method="post" enctype="multipart/form-data" class="mb-4">
+  {% csrf_token %}
+  <div class="input-group" style="max-width: 32rem;">
+    <input class="form-control" type="file" name="file" accept=".xlsx" required>
+    <button class="btn btn-primary" type="submit">Upload</button>
+  </div>
+</form>
+
+{% if result %}
+  {% if result.rejected %}
+  <h2 class="h5 text-danger">Rejected rows ({{ result.rejected|length }})</h2>
+  <table class="table table-sm table-bordered mb-4">
+    <thead><tr><th>Excel row</th><th>SRN</th><th>Reason</th></tr></thead>
+    <tbody>
+    {% for row, srn, reason in result.rejected %}
+      <tr><td>{{ row }}</td><td>{{ srn }}</td><td>{{ reason }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if result.created %}
+  <h2 class="h5 text-success">Added ({{ result.created|length }})</h2>
+  <table class="table table-sm table-bordered">
+    <thead><tr><th>Excel row</th><th>SRN</th><th>Name</th></tr></thead>
+    <tbody>
+    {% for row, srn, name in result.created %}
+      <tr><td>{{ row }}</td><td>{{ srn }}</td><td>{{ name }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+{% endif %}
+{% endblock %}
