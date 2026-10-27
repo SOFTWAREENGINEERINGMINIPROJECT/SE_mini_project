@@ -8,7 +8,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from academics.models import ClassSection, Subject, Teaching
-from attendance.models import AttendanceRecord
+from django.utils import timezone
+
+from attendance.models import AttendanceLog, AttendanceRecord
 from attendance.utils import attendance_percent
 
 User = get_user_model()
@@ -125,3 +127,89 @@ class ShortageHookTests(MarkAttendanceTests):
         self.client.force_login(self.faculty)
         self.client.post(self.url, self.payload)  # leaves.utils absent until SEM-20
         self.assertEqual(AttendanceRecord.objects.count(), 3)
+
+
+class EditAttendanceTests(TestCase):
+    """SEM-12 (REQ-10, BR-3, NFR-11)."""
+
+    def setUp(self):
+        self.faculty = User.objects.create_user("fac", password="x", role="faculty")
+        self.other = User.objects.create_user("fac2", password="x", role="faculty")
+        self.admin = User.objects.create_user("adm", password="x", role="admin")
+        self.students = [
+            User.objects.create_user(f"s{i}", password="x", role="student", srn=f"PES1UG24CS{i:03d}")
+            for i in range(1, 4)
+        ]
+        self.cls = ClassSection.objects.create(department="CSE", semester=5, section="C")
+        self.cls.students.set(self.students)
+        self.subject = Subject.objects.create(code="UE24CS341A", name="SE", semester=5)
+        self.teaching = Teaching.objects.create(faculty=self.faculty, subject=self.subject, class_section=self.cls)
+        self.day = date.today()
+        for s in self.students:
+            AttendanceRecord.objects.create(
+                student=s, subject=self.subject, class_section=self.cls, date=self.day, hour=1,
+                status="P", marked_by=self.faculty,
+            )
+        self.url = reverse("attendance:edit")
+        self.payload = {"teaching": self.teaching.pk, "date": self.day.isoformat(), "hour": 1}
+
+    def _age(self, days):
+        # marked_at is auto_now_add, so push it back with update()
+        AttendanceRecord.objects.update(marked_at=timezone.now() - timedelta(days=days))
+
+    def _post(self, **statuses):
+        data = dict(self.payload)
+        for s in self.students:
+            data[f"status_{s.pk}"] = statuses.get(s.username, "P")
+        return self.client.post(self.url, data, follow=True)
+
+    def test_students_cannot_edit(self):
+        self.client.force_login(self.students[0])
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_faculty_edit_within_3_days_logs_change(self):
+        self._age(2)
+        self.client.force_login(self.faculty)
+        self._post(s1="A", s2="L")
+        statuses = {r.student.username: r.status for r in AttendanceRecord.objects.all()}
+        self.assertEqual(statuses, {"s1": "A", "s2": "L", "s3": "P"})
+        self.assertEqual(AttendanceLog.objects.count(), 2)
+        log = AttendanceLog.objects.get(record__student__username="s1")
+        self.assertEqual((log.old_status, log.new_status, log.changed_by), ("P", "A", self.faculty))
+        self.assertIsNotNone(log.changed_at)
+
+    def test_unchanged_statuses_write_no_log(self):
+        self.client.force_login(self.faculty)
+        self._post()
+        self.assertEqual(AttendanceLog.objects.count(), 0)
+
+    def test_faculty_blocked_after_3_days(self):
+        self._age(4)
+        self.client.force_login(self.faculty)
+        resp = self._post(s1="A")
+        self.assertEqual(AttendanceRecord.objects.get(student__username="s1").status, "P")
+        self.assertEqual(AttendanceLog.objects.count(), 0)
+        self.assertContains(resp, "Only an Admin can change it")
+
+    def test_admin_can_edit_after_3_days(self):
+        self._age(10)
+        self.client.force_login(self.admin)
+        self._post(s1="A")
+        self.assertEqual(AttendanceRecord.objects.get(student__username="s1").status, "A")
+        self.assertEqual(AttendanceLog.objects.get().changed_by, self.admin)
+
+    def test_other_faculty_cannot_edit(self):
+        self.client.force_login(self.other)
+        self._post(s1="A")
+        self.assertEqual(AttendanceRecord.objects.get(student__username="s1").status, "P")
+
+    def test_invalid_status_ignored_and_nothing_deleted(self):
+        self.client.force_login(self.faculty)
+        self._post(s1="X")
+        self.assertEqual(AttendanceRecord.objects.count(), 3)
+        self.assertEqual(AttendanceRecord.objects.get(student__username="s1").status, "P")
+
+    def test_unmarked_slot_shows_message(self):
+        self.client.force_login(self.faculty)
+        resp = self.client.get(self.url, {**self.payload, "hour": 5})
+        self.assertContains(resp, "has not been marked")
