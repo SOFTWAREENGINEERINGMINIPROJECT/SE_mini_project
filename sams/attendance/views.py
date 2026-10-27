@@ -8,6 +8,7 @@ from .forms import SelectClassForm
 from leaves.models import LeaveRequest
 
 from .models import AttendanceRecord
+from .utils import run_shortage_check
 
 
 @role_required("faculty")
@@ -57,6 +58,7 @@ def mark_attendance(request):
                 messages.warning(request, "Attendance already marked for this subject, date and hour.")
                 students = None
             else:
+                run_shortage_check(students, teaching.subject)  # SEM-13 hook
                 messages.success(
                     request,
                     f"Attendance saved for {teaching.subject.code} ({teaching.class_section}), "
