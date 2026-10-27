@@ -67,3 +67,75 @@ class ApplyLeaveTests(TestCase):
     def test_login_required(self):
         response = self.client.get(reverse("leaves:apply"))
         self.assertEqual(response.status_code, 302)
+
+
+class ApproveLeaveTests(TestCase):
+    """SEM-22 / REQ-18, REQ-19 (TC-14)."""
+
+    def setUp(self):
+        from academics.models import ClassSection, Subject, Teaching
+        from attendance.models import AttendanceRecord
+
+        self.Record = AttendanceRecord
+        self.fac = User.objects.create_user(username="fac1", password="pw-123456", role="faculty")
+        self.other_fac = User.objects.create_user(username="fac2", password="pw-123456", role="faculty")
+        self.stud = User.objects.create_user(username="stud1", password="pw-123456", role="student",
+                                             email="s@example.com")
+        self.cls = ClassSection.objects.create(department="CSE", semester=5, section="C")
+        self.cls.students.add(self.stud)
+        self.sub = Subject.objects.create(code="UE24CS341A", name="SE", semester=5)
+        Teaching.objects.create(faculty=self.fac, subject=self.sub, class_section=self.cls)
+        self.d1 = date.today() - timedelta(days=2)
+        self.d2 = date.today() - timedelta(days=1)
+        for d, st in [(self.d1, "A"), (self.d2, "P"), (date.today(), "A")]:
+            AttendanceRecord.objects.create(student=self.stud, subject=self.sub, class_section=self.cls,
+                                            date=d, hour=1, status=st, marked_by=self.fac)
+        self.leave = LeaveRequest.objects.create(student=self.stud, from_date=self.d1, to_date=self.d2,
+                                                 reason="fever")
+
+    def decide(self, decision, user=None):
+        self.client.force_login(user or self.fac)
+        return self.client.post(reverse("leaves:decide", args=[self.leave.pk]), {"decision": decision})
+
+    def test_faculty_sees_pending_request(self):
+        self.client.force_login(self.fac)
+        self.assertContains(self.client.get(reverse("leaves:pending")), "fever")
+
+    def test_approve_marks_absent_days_in_range_as_leave(self):
+        from attendance.models import AttendanceLog
+        self.decide("approve")
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "approved")
+        self.assertEqual(self.Record.objects.get(date=self.d1).status, "L")
+        self.assertEqual(self.Record.objects.get(date=self.d2).status, "P")         # present stays present
+        self.assertEqual(self.Record.objects.get(date=date.today()).status, "A")   # outside range
+        self.assertEqual(AttendanceLog.objects.count(), 1)                          # NFR-11
+
+    def test_approved_leave_counts_in_percentage(self):  # REQ-19 / BR-5
+        self.decide("approve")
+        self.client.force_login(self.stud)
+        self.assertContains(self.client.get(reverse("reports:my")), "66.7%")
+
+    def test_reject_leaves_records_alone(self):
+        self.decide("reject")
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "rejected")
+        self.assertEqual(self.Record.objects.get(date=self.d1).status, "A")
+
+    def test_cannot_decide_twice(self):
+        self.decide("reject")
+        self.decide("approve")
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "rejected")
+
+    def test_other_faculty_cannot_decide(self):
+        self.assertEqual(self.decide("approve", user=self.other_fac).status_code, 404)
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "pending")
+
+    def test_student_cannot_decide(self):  # NFR-7
+        self.assertEqual(self.decide("approve", user=self.stud).status_code, 403)
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.fac)
+        self.assertEqual(self.client.get(reverse("leaves:decide", args=[self.leave.pk])).status_code, 405)

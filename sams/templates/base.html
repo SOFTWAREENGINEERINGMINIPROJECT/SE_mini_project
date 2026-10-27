@@ -17,6 +17,7 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'leaves:my' %}">My leaves</a></li>
         {% elif user.role == 'faculty' %}
         <li class="nav-item"><a class="nav-link" href="{% url 'attendance:mark' %}">Mark attendance</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'leaves:pending' %}">Leave requests</a></li>
         {% elif user.role == 'admin' %}
         <li class="nav-item"><a class="nav-link" href="/admin/">Manage subjects &amp; classes</a></li>
         {% endif %}
