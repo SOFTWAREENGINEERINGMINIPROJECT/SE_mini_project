@@ -1,8 +1,8 @@
 from django.db.models import Count, Q
 from django.shortcuts import render
 
-from .forms import ReportForm
-from .services import build_report
+from .forms import ReportForm, ShortageFilterForm
+from .services import build_report, build_shortage
 
 from accounts.decorators import role_required
 from attendance.models import AttendanceRecord
@@ -54,4 +54,18 @@ def class_report(request):
     return render(request, "reports/class_report.html", {
         "form": form, "rows": rows, "teaching": teaching,
         "start": start, "end": end, "threshold": THRESHOLD,
+    })
+@role_required("faculty", "admin")
+def shortage_list(request):
+    """SEM-17 (REQ-15): students below 75% attendance.
+
+    Faculty see their own classes; admin sees every class.
+    """
+    form = ShortageFilterForm(request.GET or None, user=request.user)
+    teachings = form.fields["teaching"].queryset
+    if request.GET and form.is_valid() and form.cleaned_data["teaching"]:
+        teachings = teachings.filter(pk=form.cleaned_data["teaching"].pk)
+    rows = build_shortage(teachings)
+    return render(request, "reports/shortage_list.html", {
+        "form": form, "rows": rows, "threshold": THRESHOLD,
     })

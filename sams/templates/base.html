@@ -19,10 +19,14 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'attendance:mark' %}">Mark attendance</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'attendance:edit' %}">Edit attendance</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'leaves:pending' %}">Leave requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports:class' %}">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports:shortage' %}">Shortage list</a></li>
         {% elif user.role == 'admin' %}
         <li class="nav-item"><a class="nav-link" href="/admin/">Manage subjects &amp; classes</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'accounts:upload_students' %}">Upload students</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'attendance:edit' %}">Edit attendance</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports:class' %}">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'reports:shortage' %}">Shortage list</a></li>
         {% endif %}
       </ul>
       {% endif %}

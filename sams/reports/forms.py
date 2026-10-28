@@ -28,3 +28,17 @@ class ReportForm(forms.Form):
         if start and end and start > end:
             raise forms.ValidationError("'From' date must be on or before 'To' date.")
         return data
+
+class ShortageFilterForm(forms.Form):
+    """SEM-17: optionally narrow the shortage list to one subject / class."""
+    teaching = forms.ModelChoiceField(
+        queryset=Teaching.objects.none(), required=False, empty_label="All classes", label="Subject / class"
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = Teaching.objects.select_related("subject", "class_section", "faculty")
+        if user is not None and user.role == "faculty":
+            qs = qs.filter(faculty=user)
+        self.fields["teaching"].queryset = qs
+        self.fields["teaching"].widget.attrs["class"] = "form-select"
