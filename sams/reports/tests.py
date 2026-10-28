@@ -53,3 +53,49 @@ class ClassReportTests(TestCase):
 
     def test_anonymous_redirected_to_login(self):
         self.assertEqual(self.get().status_code, 302)
+
+class ShortageListTests(TestCase):
+    def setUp(self):
+        self.fac = User.objects.create_user("fac", password="x", role="faculty")
+        self.other_fac = User.objects.create_user("fac2", password="x", role="faculty")
+        self.admin = User.objects.create_user("adm", password="x", role="admin")
+        self.low = User.objects.create_user("low", password="x", role="student", srn="S1")
+        self.edge = User.objects.create_user("edge", password="x", role="student", srn="S2")
+        self.fresh = User.objects.create_user("fresh", password="x", role="student", srn="S3")
+        cls = ClassSection.objects.create(department="CSE", semester=3, section="C")
+        cls.students.add(self.low, self.edge, self.fresh)
+        self.sub = Subject.objects.create(code="SE", name="Software Eng", semester=3)
+        Teaching.objects.create(faculty=self.fac, subject=self.sub, class_section=cls)
+        self.cls = cls
+        # low: 1 of 4 = 25%; edge: 3 of 4 = exactly 75%; fresh: no classes yet
+        for student, pattern in ((self.low, "PAAA"), (self.edge, "PPPA")):
+            for i, status in enumerate(pattern):
+                AttendanceRecord.objects.create(
+                    student=student, subject=self.sub, class_section=cls,
+                    date=date(2026, 10, 1 + i), hour=1, status=status, marked_by=self.fac,
+                )
+        self.url = reverse("reports:shortage")
+
+    def names(self, response):
+        return [r["name"] for r in response.context["rows"]]
+
+    def test_lists_only_students_below_75(self):
+        self.client.login(username="fac", password="x")
+        response = self.client.get(self.url)
+        self.assertEqual(self.names(response), ["low"])  # 75% exactly and no-classes are not listed
+        self.assertEqual(response.context["rows"][0]["percent"], 25.0)
+
+    def test_admin_sees_all_classes(self):
+        self.client.login(username="adm", password="x")
+        self.assertEqual(self.names(self.client.get(self.url)), ["low"])
+
+    def test_other_faculty_sees_nothing(self):
+        self.client.login(username="fac2", password="x")
+        self.assertEqual(self.names(self.client.get(self.url)), [])
+
+    def test_student_forbidden(self):
+        self.client.login(username="low", password="x")
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_anonymous_redirected_to_login(self):
+        self.assertEqual(self.client.get(self.url).status_code, 302)
