@@ -20,7 +20,8 @@
   <thead class="table-light">
     <tr>
       <th>SRN</th><th>Name</th><th>Subject</th><th>Class</th>
-      <th class="text-end">Conducted</th><th class="text-end">Attendance %</th>
+      <th class="text-end">Classes Conducted</th><th class="text-end">Classes Attended</th>
+      <th class="text-end">Attendance %</th><th>Email Sent</th><th>Faculty</th>
     </tr>
   </thead>
   <tbody>
@@ -29,12 +30,19 @@
       <td>{{ r.srn }}</td><td>{{ r.name }}</td>
       <td>{{ r.subject }}</td><td>{{ r.class_section }}</td>
       <td class="text-end">{{ r.conducted }}</td>
-      <td class="text-end"><span class="badge text-bg-danger">{{ r.percent }}%</span></td>
+      <td class="text-end">{{ r.attended }}</td>
+      <td class="text-end"><span class="badge text-bg-danger">{{ r.percent|floatformat:1 }}%</span></td>
+      <td>{% if r.email_sent %}Y{% else %}N{% endif %}</td>
+      <td>{{ r.faculty }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-<p class="text-muted small">{{ rows|length }} student{{ rows|length|pluralize }} below {{ threshold }}%. Attendance % = (attended + approved leave) / conducted x 100.</p>
+<p class="text-muted small">
+  {{ rows|length }} student{{ rows|length|pluralize }} below {{ threshold }}%.
+  Attendance % = (attended + approved leave) / conducted x 100.
+  Generated on {{ generated_on|date:"d M Y H:i" }}.
+</p>
 {% else %}
 <p class="text-muted">No students are below {{ threshold }}% attendance.</p>
 {% endif %}
