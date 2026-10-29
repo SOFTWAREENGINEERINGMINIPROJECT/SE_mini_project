@@ -19,31 +19,32 @@ Mirrors the [GitHub Issues](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE
 |---|---|---|---|---|---|
 | SEM-18 | Django project setup | SRS 2.5 | 5 | Gyaan | Done |
 | SEM-19 | Shared models for all apps | backbone for REQ-1..19 | 5 | Gyaan | Done |
-| SEM-5 | Login / logout | REQ-1 | 3 | Santosh | In review ([PR #19](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/19)) |
-| SEM-6 | Role-based dashboard + `role_required` decorator | REQ-2, NFR-7 | 5 | Santosh | In review ([PR #19](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/19)) |
-| SEM-9 | Admin: add subjects | REQ-5 | 2 | Deepak | To do |
-| SEM-10 | Admin: add classes, assign faculty | REQ-6, REQ-7 | 3 | Deepak | To do |
-| SEM-11 | Mark attendance | REQ-8, REQ-9 | 5 | Deepak | To do |
-| SEM-14 | Student: my attendance | REQ-12, NFR-8 | 2 | Subhransi | To do |
+| SEM-5 | Login / logout | REQ-1 | 3 | Santosh | Done ([PR #19](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/19)) |
+| SEM-6 | Role-based dashboard + `role_required` decorator | REQ-2, NFR-7 | 5 | Santosh | Done ([PR #19](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/19)) |
+| SEM-9 | Admin: add subjects | REQ-5 | 2 | Deepak | Done ([PR #20](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/20)) |
+| SEM-10 | Admin: add classes, assign faculty | REQ-6, REQ-7 | 3 | Deepak | Done ([PR #20](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/20)) |
+| SEM-11 | Mark attendance | REQ-8, REQ-9 | 5 | Deepak | Done ([PR #20](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/20)) |
+| SEM-14 | Student: my attendance | REQ-12, NFR-8 | 2 | Subhransi | Done ([PR #21](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/21)) |
 
-Sprint 1 total: 30 points.
+Sprint 1 total: 30 points. Completed: 30.
 
 ## Sprint 2
 
-| Key | Story | Covers | Points | Owner |
-|---|---|---|---|---|
-| SEM-7 | Admin: add/edit/delete students & faculty | REQ-3, BR-1 | 5 | Santosh |
-| SEM-8 | Excel upload for students | REQ-4 | 8 | Santosh |
-| SEM-12 | Edit attendance within 3 days + audit log | REQ-10, NFR-11 | 5 | Deepak |
-| SEM-13 | `attendance_percent()` + shortage hook | REQ-11, BR-5 | 3 | Deepak |
-| SEM-15 | Report: class + subject + date range | REQ-13 | 5 | Subhransi |
-| SEM-16 | PDF / Excel report export | REQ-14 | 8 | Subhransi |
-| SEM-17 | Shortage list (< 75%) | REQ-15, BR-4 | 3 | Subhransi |
-| SEM-20 | Shortage email | REQ-16 | 3 | Gyaan |
-| SEM-21 | Apply for leave | REQ-17 | 3 | Gyaan |
-| SEM-22 | Approve / reject leave | REQ-18, REQ-19 | 5 | Gyaan |
+| Key | Story | Covers | Points | Owner | Status |
+|---|---|---|---|---|---|
+| SEM-7 | Admin: add/edit/delete students & faculty | REQ-3, BR-1 | 5 | Santosh | Partly - done through Django admin (see docs/DEVIATIONS.md) |
+| SEM-8 | Excel upload for students | REQ-4 | 8 | Santosh | Done ([PR #31](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/31)) |
+| SEM-12 | Edit attendance within 3 days + audit log | REQ-10, NFR-11 | 5 | Deepak | Done ([PR #30](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/30)) |
+| SEM-13 | `attendance_percent()` + shortage hook | REQ-11, BR-5 | 3 | Deepak | Done ([PR #29](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/29)) |
+| SEM-15 | Report: class + subject + date range | REQ-13 | 5 | Subhransi | Done ([PR #25](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/25)) |
+| SEM-16 | PDF / Excel report export | REQ-14 | 8 | Subhransi | In progress |
+| SEM-17 | Shortage list (< 75%) | REQ-15, BR-4 | 3 | Subhransi | Done ([PR #33](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/33)) |
+| SEM-20 | Shortage email | REQ-16 | 3 | Gyaan | Done ([PR #32](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/32)) |
+| SEM-21 | Apply for leave | REQ-17 | 3 | Gyaan | Done ([PR #27](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/27)) |
+| SEM-22 | Approve / reject leave | REQ-18, REQ-19 | 5 | Gyaan | Done ([PR #28](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/28)) |
+| - | UI: role-based navigation links (#23) | REQ-2 | 2 | Subhransi | Done ([PR #24](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/24)) |
 
-Sprint 2 total: 48 points.
+Sprint 2 total: 50 points (48 planned + 2 added).
 
 ## NFRs without a dedicated story
 
@@ -51,8 +52,8 @@ Covered as acceptance criteria on the stories above, or already satisfied by the
 
 | NFR | Where it's satisfied |
 |---|---|
-| NFR-1, NFR-2, NFR-3 (performance) | Verified at demo against the Test Plan, not a separate story |
-| NFR-4 (daily DB backup) | Ops task, not app code — do before Sprint 2 freeze |
+| NFR-1, NFR-2, NFR-3 (performance) | Not measured yet (TC-15), see docs/DEVIATIONS.md |
+| NFR-4 (daily DB backup) | Not automated, manual mysqldump, see docs/DEVIATIONS.md |
 | NFR-5 (no hard delete) | Design constraint: attendance app never exposes a delete view |
 | NFR-6 (hashed passwords) | Django default (PBKDF2), already true from SEM-18 |
 | NFR-9 (30 min session timeout) | Set in `settings.py` (see HANDOFF.md) |
@@ -60,10 +61,4 @@ Covered as acceptance criteria on the stories above, or already satisfied by the
 
 ## GitHub Project board
 
-A GitHub Projects (v2) board gives the same backlog a Kanban/Table view linked to this repo. Creating one needs repo-admin project access the current token doesn't carry, so it's a 90-second manual step for whoever has admin on the repo:
-
-1. Repo → **Projects** tab → **New project** → **Board**.
-2. **Add items** → filter by repo `SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project` → add all open issues.
-3. Group by the `sprint-1` / `sprint-2` labels (or add a custom "Sprint" field).
-
-Everything the board would show — points, owner, sprint, epic — is already on each issue as labels, so the board is a view, not new data.
+The org Projects board has a Sprint 1 and a Sprint 2 view. Issues carry the sprint, epic, owner and points labels.
