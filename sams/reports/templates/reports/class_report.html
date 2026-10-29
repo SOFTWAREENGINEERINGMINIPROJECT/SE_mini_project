@@ -29,14 +29,20 @@
 
 {% if rows is not None %}
   <h2 class="h5">{{ teaching.subject }} &middot; {{ teaching.class_section }}</h2>
-  <p class="text-muted">{{ start|date:"d M Y" }} to {{ end|date:"d M Y" }}</p>
+  <p class="text-muted mb-2">
+    {{ start|date:"d M Y" }} to {{ end|date:"d M Y" }} &middot; Faculty: {{ faculty }}
+  </p>
   {% if rows %}
+  <div class="mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'reports:export' 'pdf' %}?teaching={{ teaching.pk }}&start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}">Download PDF</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'reports:export' 'xlsx' %}?teaching={{ teaching.pk }}&start={{ start|date:'Y-m-d' }}&end={{ end|date:'Y-m-d' }}">Download Excel</a>
+  </div>
   <table class="table table-bordered table-sm align-middle">
     <thead class="table-light">
       <tr>
         <th>SRN</th><th>Name</th>
-        <th class="text-end">Conducted</th><th class="text-end">Attended</th>
-        <th class="text-end">Absent</th><th class="text-end">Attendance %</th>
+        <th class="text-end">Classes Conducted</th><th class="text-end">Classes Attended</th>
+        <th class="text-end">Leave Days</th><th class="text-end">Attendance %</th>
       </tr>
     </thead>
     <tbody>
@@ -44,15 +50,18 @@
       <tr>
         <td>{{ r.srn }}</td><td>{{ r.name }}</td>
         <td class="text-end">{{ r.conducted }}</td><td class="text-end">{{ r.attended }}</td>
-        <td class="text-end">{{ r.absent }}</td>
+        <td class="text-end">{{ r.leave }}</td>
         <td class="text-end">
-          <span class="badge {% if r.below %}text-bg-danger{% else %}text-bg-success{% endif %}">{{ r.percent }}%</span>
+          <span class="badge {% if r.below %}text-bg-danger{% else %}text-bg-success{% endif %}">{{ r.percent|floatformat:1 }}%</span>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  <p class="text-muted small">Attendance % = (attended + approved leave) / conducted x 100. Red = below {{ threshold }}%.</p>
+  <p class="text-muted small">
+    Attendance % = (attended + approved leave) / conducted x 100. Red = below {{ threshold }}%.
+    Generated on {{ generated_on|date:"d M Y H:i" }}.
+  </p>
   {% else %}
   <p class="text-muted">No students are enrolled in this class.</p>
   {% endif %}
