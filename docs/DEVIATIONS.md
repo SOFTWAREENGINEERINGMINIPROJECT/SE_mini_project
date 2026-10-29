@@ -14,6 +14,6 @@ Things we did differently from the submitted documents (SRS v1.0, SAD v1.0, Test
 | 8 | SRS NFR-4 | Daily database backup | Not automated. Manual backup with `mysqldump -u sams_user -p sams_db > backup.sql` | No server deployment in this project, it runs on our laptops |
 | 9 | SAD 3.9 (STRIDE) | Limit login attempts | Not done | Not in the SRS requirements list, left out for time |
 | 10 | SRS 2.4, SAD 3.6 | MySQL 8.0 | MySQL for running the app, SQLite (`USE_SQLITE=1`) for local testing and GitHub Actions CI | CI doesn't need a MySQL server, tests run faster |
-| 11 | Test Plan 5 | System testing with Selenium | System testing done manually in the browser. 67 automated Django tests run in GitHub Actions on every PR | Not enough time to set up Selenium |
+| 11 | Test Plan 5 | System testing with Selenium | System testing done manually in the browser. 73 automated Django tests run in GitHub Actions on every PR | Not enough time to set up Selenium |
 | 12 | Test Plan 7 | Testing 12-10-2026 to 13-11-2026 | Testing done in the two sprints, 19-10 to 23-10 and 26-10 to 30-10-2026 | Sprint dates were given by the course after the Test Plan was submitted. Updated in Test Plan v1.1 |
 | 13 | Mark attendance | - | Attendance cannot be marked for a future date | Added as a basic validation |
