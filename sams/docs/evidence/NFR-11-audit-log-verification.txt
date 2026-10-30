@@ -1,0 +1,19 @@
+NFR-11: Attendance audit logging verification
+Date: 2026-10-30
+
+Test command:
+python manage.py test attendance.tests.EditAttendanceTests -v 2
+
+Result:
+8 tests passed, 0 failures.
+
+Verified:
+- Faculty attendance edits create audit log entries.
+- Admin attendance edits create audit log entries.
+- Logs record the user who made the change.
+- Logs record the change timestamp.
+- Unchanged statuses do not create unnecessary log entries.
+- Invalid status updates do not delete attendance records.
+
+Limitation:
+This test does not establish audit-log tamper resistance.
