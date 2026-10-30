@@ -1,0 +1,30 @@
+﻿NFR-4: Daily Database Backup Verification
+Project: SAMS
+Date: 30 October 2026
+
+Database:
+- Engine: SQLite
+- Database: db.sqlite3
+
+Backup implementation:
+- Script: backup_database.py
+- Backup directory: backups/
+
+Initial backup verification:
+- Backup file: sams_backup_20261030_233904.sqlite3
+- SQLite integrity check: ok
+- Table count: 19
+
+Automatic backup verification:
+- Windows Task Scheduler task: SAMS Daily Database Backup
+- Frequency: Daily
+- Scheduled time: 11:55 PM
+- Execution time observed: 30 October 2026, 23:39:57
+- LastTaskResult: 0 (successful task execution)
+- Second backup created: sams_backup_20261030_233958.sqlite3
+- Backup file size: 253952 bytes
+- Next scheduled execution: 30 October 2026, 23:55
+
+Conclusion:
+Backup creation and scheduled task execution were verified successfully.
+A second-day recurrence and database restoration test have not yet been performed.
