@@ -150,3 +150,24 @@ class StudentExcelUploadTests(TestCase):
     def test_no_file(self):
         self.client.force_login(self.admin)
         self.assertContains(self.client.post(self.url), "Choose an Excel")
+
+
+class AdminRoleTests(TestCase):
+    """Admins must reach both the SAMS admin pages and the Django admin site (REQ-3, REQ-5..7)."""
+
+    def test_createsuperuser_gets_admin_role(self):
+        u = User.objects.create_superuser("root", "r@x.com", "pw-123456")
+        self.assertEqual(u.role, "admin")
+        self.client.force_login(u)
+        self.assertTemplateUsed(self.client.get(reverse("accounts:dashboard")), "accounts/dashboard_admin.html")
+
+    def test_admin_role_can_open_django_admin(self):
+        u = User.objects.create_user("adm9", password="pw-123456", role="admin")
+        self.assertTrue(u.is_staff)
+        self.client.force_login(u)
+        self.assertEqual(self.client.get("/admin/academics/subject/").status_code, 200)
+
+    def test_faculty_and_student_are_not_staff(self):
+        for role in ("faculty", "student"):
+            u = User.objects.create_user(f"x_{role}", password="pw-123456", role=role)
+            self.assertFalse(u.is_staff)

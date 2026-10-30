@@ -4,6 +4,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from django.db.models import Count, Q
+
+from attendance.models import AttendanceRecord
 from attendance.utils import attendance_percent
 
 from .models import ShortageAlert
@@ -20,9 +23,13 @@ def check_shortage(student, subject):
     """
     if not student.email:
         return False
-    pct = attendance_percent(student, subject)
-    if pct >= THRESHOLD:
+    counts = AttendanceRecord.objects.filter(student=student, subject=subject).aggregate(
+        total=Count("id"), attended=Count("id", filter=Q(status__in=("P", "L")))
+    )
+    # exact comparison (BR-4), same rule as the shortage list - no rounding at the 75% boundary
+    if not counts["total"] or counts["attended"] * 100 >= THRESHOLD * counts["total"]:
         return False
+    pct = attendance_percent(student, subject)
 
     recent = ShortageAlert.objects.filter(
         student=student, subject=subject,

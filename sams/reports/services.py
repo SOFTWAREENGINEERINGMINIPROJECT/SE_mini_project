@@ -1,7 +1,6 @@
 from django.db.models import Count, Q
 
 from attendance.models import AttendanceRecord
-from attendance.utils import attendance_percent
 from leaves.models import ShortageAlert
 
 THRESHOLD = 75  # BR-4
@@ -63,7 +62,7 @@ def build_shortage(teachings):
     """SEM-17 (REQ-15, BR-4): students below THRESHOLD % in each given teaching (subject + class).
 
     Columns follow the SRS Appendix B shortage report. The displayed % comes from
-    attendance_percent() (SEM-13); the below-75 decision is exact (see is_below).
+    counts for that class; the below-75 decision is exact (see is_below).
     Students with no classes conducted yet are not listed.
     """
     rows = []
@@ -95,7 +94,8 @@ def build_shortage(teachings):
                 "conducted": c["total"],
                 "attended": c["present"],
                 "leave": c["leave"],
-                "percent": attendance_percent(s, t.subject),
+                # % for this class only, same counts as the below-75 check above
+                "percent": round((c["present"] + c["leave"]) * 100 / c["total"], 2),
                 "email_sent": s.pk in mailed,
                 "faculty": faculty,
             })

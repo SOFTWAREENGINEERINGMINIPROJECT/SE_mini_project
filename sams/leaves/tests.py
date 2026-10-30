@@ -205,3 +205,18 @@ class ShortageEmailTests(TestCase):
         })
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("UE24CS342A", mail.outbox[0].subject)
+
+
+class ShortageBoundaryTests(TestCase):
+    setUp = ShortageEmailTests.setUp
+    add = ShortageEmailTests.add
+
+    def test_mail_once_it_drops_below_75(self):
+        """3/4 = 75% is not a shortage, one more absent (3/5 = 60%) is (BR-4)."""
+        from django.core import mail
+        from .utils import check_shortage
+        for h, st in enumerate("PPPA", start=1):
+            self.add(st, h)
+        self.add("A", 5)  # 3/5 = 60%
+        self.assertTrue(check_shortage(self.stud, self.sub))
+        self.assertEqual(len(mail.outbox), 1)
