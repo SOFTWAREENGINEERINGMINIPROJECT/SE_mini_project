@@ -220,3 +220,44 @@ class ShortageBoundaryTests(TestCase):
         self.add("A", 5)  # 3/5 = 60%
         self.assertTrue(check_shortage(self.stud, self.sub))
         self.assertEqual(len(mail.outbox), 1)
+
+
+class LeaveValidationTests(TestCase):
+    """REQ-17 form rules and REQ-18 bad input."""
+
+    def setUp(self):
+        self.student = User.objects.create_user(username="stud5", password="pw-123456", role="student")
+        self.client.force_login(self.student)
+
+    def test_short_reason_rejected(self):
+        d = date.today()
+        r = self.client.post(reverse("leaves:apply"), {"from_date": d, "to_date": d, "reason": "ok"})
+        self.assertContains(r, "Please give a proper reason.")
+
+    def test_more_than_30_days_rejected(self):
+        d = date.today()
+        r = self.client.post(reverse("leaves:apply"),
+                             {"from_date": d, "to_date": d + timedelta(days=31), "reason": "long trip home"})
+        self.assertContains(r, "Leave cannot be longer than 30 days.")
+
+    def test_model_str(self):
+        leave = LeaveRequest.objects.create(student=self.student, from_date=date.today(),
+                                            to_date=date.today(), reason="fever")
+        self.assertIn("pending", str(leave))
+
+
+class DecideLeaveBadInputTests(ApproveLeaveTests):
+    def test_invalid_decision_changes_nothing(self):
+        r = self.decide("maybe")
+        self.assertRedirects(r, reverse("leaves:pending"))
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "pending")
+
+    def test_no_email_address_still_decides(self):
+        self.stud.email = ""
+        self.stud.save()
+        from django.core import mail
+        self.decide("reject")
+        self.leave.refresh_from_db()
+        self.assertEqual(self.leave.status, "rejected")
+        self.assertEqual(len(mail.outbox), 0)

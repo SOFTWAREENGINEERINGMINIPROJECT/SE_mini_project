@@ -171,3 +171,52 @@ class AdminRoleTests(TestCase):
         for role in ("faculty", "student"):
             u = User.objects.create_user(f"x_{role}", password="pw-123456", role=role)
             self.assertFalse(u.is_staff)
+
+
+class ImporterValidationTests(TestCase):
+    """SEM-8 (REQ-4): each Appendix B field rule rejects a bad row with its own reason."""
+
+    def test_field_rules(self):
+        from .importer import clean_row
+        good = ["PES1UG24CS001", "Asha Rao", "asha@pes.edu", "9876543210", "5", "C", "CSE"]
+        cases = {
+            0: ("PES-1UG", "SRN must be alphanumeric"),
+            1: ("x" * 51, "Name is longer than 50"),
+            2: ("a" * 45 + "@x.com", "Email is invalid"),
+            5: ("CD", "Section must be a single letter"),
+            6: ("COMPSC", "Department is longer than 5"),
+        }
+        for idx, (bad, msg) in cases.items():
+            row = list(good)
+            row[idx] = bad
+            data, err = clean_row(row)
+            self.assertIsNone(data)
+            self.assertIn(msg, err)
+        self.assertIsNone(clean_row(good)[1])
+
+    def test_excel_floats_become_ints(self):
+        from .importer import clean_row
+        data, err = clean_row(["PES1UG24CS002", "Ravi", "r@pes.edu", 9876543210.0, 5.0, "A", "ECE"])
+        self.assertIsNone(err)
+        self.assertEqual((data["phone"], data["semester"]), ("9876543210", 5))
+
+    def test_existing_username_rejected(self):
+        User.objects.create_user("PES1UG24CS003", password="x", role="faculty")
+        upload = StudentExcelUploadTests.xlsx(StudentExcelUploadTests, [["PES1UG24CS003", "Dup", "d@pes.edu", "", 5, "C", "CSE"]])
+        admin = User.objects.create_user("adm8", password="x", role="admin")
+        self.client.force_login(admin)
+        resp = self.client.post(reverse("accounts:upload_students"), {"file": upload})
+        self.assertEqual(len(resp.context["result"]["rejected"]), 1)
+
+    def test_too_many_rows(self):
+        from . import importer
+        old = importer.MAX_ROWS
+        importer.MAX_ROWS = 2
+        try:
+            upload = StudentExcelUploadTests.xlsx(StudentExcelUploadTests, [["PES1UG24CS%03d" % i, "S", "s@pes.edu", "", 5, "C", "CSE"] for i in range(3)])
+            admin = User.objects.create_user("adm7", password="x", role="admin")
+            self.client.force_login(admin)
+            resp = self.client.post(reverse("accounts:upload_students"), {"file": upload})
+            self.assertContains(resp, "Too many rows")
+        finally:
+            importer.MAX_ROWS = old
