@@ -250,3 +250,17 @@ class ReportExportTests(TestCase):
         response = self.client.get(reverse("reports:class"), self.params)
         self.assertContains(response, "Download PDF")
         self.assertContains(response, "Download Excel")
+
+class ShortageFilterTests(ShortageListTests):
+    def test_filter_by_one_class(self):
+        t = Teaching.objects.get()
+        self.client.login(username="fac", password="x")
+        r = self.client.get(self.url, {"teaching": t.pk})
+        self.assertEqual(self.names(r), ["low"])
+
+    def test_model_strings(self):
+        from attendance.models import AttendanceRecord as AR
+        from leaves.models import ShortageAlert
+        self.assertIn("SE", str(AR.objects.first()))
+        alert = ShortageAlert.objects.create(student=self.low, subject=self.sub, percent=25.0)
+        self.assertIn("25.0%", str(alert))

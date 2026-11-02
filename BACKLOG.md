@@ -37,7 +37,7 @@ Sprint 1 total: 30 points. Completed: 30.
 | SEM-12 | Edit attendance within 3 days + audit log | REQ-10, NFR-11 | 5 | Deepak | Done ([PR #30](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/30)) |
 | SEM-13 | `attendance_percent()` + shortage hook | REQ-11, BR-5 | 3 | Deepak | Done ([PR #29](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/29)) |
 | SEM-15 | Report: class + subject + date range | REQ-13 | 5 | Subhransi | Done ([PR #25](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/25)) |
-| SEM-16 | PDF / Excel report export | REQ-14 | 8 | Subhransi | In progress |
+| SEM-16 | PDF / Excel report export | REQ-14 | 8 | Subhransi | Done ([PR #35](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/35)) |
 | SEM-17 | Shortage list (< 75%) | REQ-15, BR-4 | 3 | Subhransi | Done ([PR #33](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/33)) |
 | SEM-20 | Shortage email | REQ-16 | 3 | Gyaan | Done ([PR #32](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/32)) |
 | SEM-21 | Apply for leave | REQ-17 | 3 | Gyaan | Done ([PR #27](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/27)) |
