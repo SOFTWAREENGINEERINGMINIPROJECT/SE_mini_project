@@ -45,19 +45,21 @@ Sprint 1 total: 30 points. Completed: 30.
 | - | UI: role-based navigation links (#23) | REQ-2 | 2 | Subhransi | Done ([PR #24](https://github.com/SOFTWAREENGINEERINGMINIPROJECT/SE_mini_project/pull/24)) |
 
 Sprint 2 total: 50 points (48 planned + 2 added).
-
 ## NFRs without a dedicated story
 
-Covered as acceptance criteria on the stories above, or already satisfied by the Sprint 1 setup (SEM-18/19):
+Covered as acceptance criteria on the stories above, or already satisfied by the Sprint 1 setup (SEM-18/19). Verification status is based on the evidence recorded in `docs/Test_Plan_Team1_SAMS.docx` and `docs/DEVIATIONS.md`.
 
-| NFR | Where it's satisfied |
+| NFR | Where it's satisfied / verification status |
 |---|---|
-| NFR-1, NFR-2, NFR-3 (performance) | Not measured yet (TC-15), see docs/DEVIATIONS.md |
-| NFR-4 (daily DB backup) | Not automated, manual mysqldump, see docs/DEVIATIONS.md |
-| NFR-5 (no hard delete) | Design constraint: attendance app never exposes a delete view |
-| NFR-6 (hashed passwords) | Django default (PBKDF2), already true from SEM-18 |
-| NFR-9 (30 min session timeout) | Set in `settings.py` (see HANDOFF.md) |
-| NFR-10 (CSRF / SQL injection) | Django default (CSRF middleware, ORM) — don't use raw SQL |
+| NFR-1, NFR-2, NFR-3 (performance) | Performance tests recorded in TC-15. Reported results meet the specified limits. See `docs/DEVIATIONS.md` and Test Plan v1.2. |
+| NFR-4 (daily DB backup) | SQLite backup script implemented with integrity check. Daily execution can be configured through Windows Task Scheduler or cron; server-side scheduling is not included in the project. See `docs/DEVIATIONS.md` and `sams/docs/evidence/NFR-4-backup-verification.txt`. |
+| NFR-5 (no hard delete) | Design constraint: attendance app does not expose a delete view. Full prevention of permanent deletion remains to be verified. |
+| NFR-6 (hashed passwords) | Django PBKDF2 password hashing configured and verified. |
+| NFR-7 (role-based access control) | Implemented through role-based access controls and Django admin permissions; verified in TC-18. |
+| NFR-8 (student data privacy) | Student attendance access is restricted to the logged-in student's own records. |
+| NFR-9 (30 min session timeout) | Session expiry configured to 1800 seconds in `settings.py`; see HANDOFF.md. |
+| NFR-10 (CSRF / SQL injection) | Django CSRF middleware and ORM protections are used. Database access should use the ORM rather than unsafe raw SQL. |
+| NFR-11 (attendance audit log) | Attendance changes are recorded with the faculty member and timestamp; see TC-12 and NFR-11 verification evidence. |
 
 ## GitHub Project board
 
